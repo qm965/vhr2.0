@@ -38,6 +38,9 @@ vhr-vue.zip
 *.sw?
 
 *.tsbuildinfo
+.env
+.env.*
+!.env.example
 .vscode/
 package-lock.json
 .gitignore

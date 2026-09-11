@@ -1,0 +1,59 @@
+name: dev-infra
+
+# Shared local infrastructure for vhr2.0 and other local projects.
+# Applications running on the host connect through the published localhost ports.
+services:
+  mysql:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vhr2024}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123}
+    ports:
+      - "33061:3306"
+    volumes:
+      # Keep the existing volume name so the current local data is reused.
+      - vhr2_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD:-123} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:6.2-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-123}
+    ports:
+      - "6379:6379"
+    volumes:
+      - vhr2_redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD:-123} ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - vhr2_rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  # Explicitly bind the old Compose-generated names during this migration.
+  vhr2_mysql_data:
+    name: vhr2-infra_vhr2_mysql_data
+  vhr2_redis_data:
+    name: vhr2-infra_vhr2_redis_data
+  vhr2_rabbitmq_data:
+    name: vhr2-infra_vhr2_rabbitmq_data
