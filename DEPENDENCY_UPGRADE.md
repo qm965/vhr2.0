@@ -1,65 +1,31 @@
-# vhr2.0 dependency upgrade
+# vhr2.0 依赖升级说明
 
-This update moves each direct third-party dependency to the newest stable release
-verified on 2026-09-11. Frontend versions are exact rather than ranges so a fresh
-install is repeatable; the generated `package-lock.json` records transitive
-dependencies.
+本次将直接声明的第三方依赖升级至 2026-09-11 核对到的最新稳定版本。前端版本使用精确版本号而非范围，以确保全新安装可复现；生成的 `package-lock.json` 记录了传递依赖。
 
-## Backend
+## 后端
 
-- Spring Boot: `3.2.1` to `4.0.3`. Spring Boot 4 still runs on Java 17, which
-  matches this project. Its servlet starter is now `spring-boot-starter-webmvc`;
-  the old `spring-boot-starter-web` is deprecated.
-- MyBatis-Plus: `3.5.5` to `3.5.16`. The obsolete generic
-  `mybatis-plus-boot-starter` is replaced by the Spring Boot 4-specific
-  `mybatis-plus-spring-boot4-starter`. Since 3.5.9, the pagination interceptor
-  is supplied separately, so `mybatis-plus-jsqlparser` is now declared at the
-  same version to retain the existing `PaginationInnerInterceptor` setup.
-- MyBatis Spring Boot Starter: removed. It overlapped with MyBatis-Plus and its
-  explicit `3.0.3` release is not the Boot 4 integration. The MyBatis-Plus
-  starter provides the required MyBatis integration.
-- MyBatis-Plus Generator: `RELEASE` to `3.5.16`. `RELEASE` is a moving,
-  non-reproducible Maven version; it is now aligned with the ORM runtime.
-- Spring-managed dependencies (Spring Framework/Security, Jackson, Tomcat,
-  MySQL driver and test libraries) move with the Boot 4.0.3 BOM instead of
-  being manually overridden. Spring Security 7 removes the no-argument
-  `DaoAuthenticationProvider` constructor, so the existing authentication
-  manager now passes its `UserDetailsService` to the constructor. Spring 7 also
-  removes `MediaType.APPLICATION_JSON_UTF8_VALUE`; JSON request detection now
-  uses the supported `MediaType` compatibility check and continues accepting
-  JSON with a charset.
+- Spring Boot：`3.2.1` 升级至 `4.0.3`。Spring Boot 4 仍可运行于项目使用的 Java 17。Servlet Web Starter 改为 `spring-boot-starter-webmvc`，旧的 `spring-boot-starter-web` 已废弃。
+- MyBatis-Plus：`3.5.5` 升级至 `3.5.16`。旧的通用 `mybatis-plus-boot-starter` 改为 Spring Boot 4 专用的 `mybatis-plus-spring-boot4-starter`。自 3.5.9 起，分页拦截器依赖需单独引入，因此新增同版本的 `mybatis-plus-jsqlparser`，以保留原有 `PaginationInnerInterceptor` 配置。
+- 移除 MyBatis Spring Boot Starter。它与 MyBatis-Plus 功能重叠，且显式声明的 `3.0.3` 版本不适用于 Boot 4 集成；MyBatis-Plus Starter 已提供所需集成。
+- MyBatis-Plus Generator：由 `RELEASE` 改为 `3.5.16`。`RELEASE` 是不可复现的浮动版本，现与 ORM 运行时版本对齐。
+- Spring Framework/Security、Jackson、Tomcat、MySQL Driver 与测试库均由 Boot 4.0.3 BOM 管理，不再手动覆盖。Spring Security 7 移除了无参 `DaoAuthenticationProvider` 构造方法，认证管理器改为传入现有 `UserDetailsService`。Spring 7 也移除了 `MediaType.APPLICATION_JSON_UTF8_VALUE`，JSON 请求识别改为受支持的 `MediaType` 兼容性判断，并继续接受带字符集的 JSON。
 
-## Frontend
+## 前端
 
-- Axios: `^1.6.4` to `1.20.0`.
-- Element Plus: `^2.4.4` to `2.14.5`.
-- Pinia: `^2.1.7` to `4.0.3`. The app uses the supported setup-store and
-  options-store APIs.
-- Vue: `^3.3.11` to `3.5.42`. Vue 3.5 makes destructured `defineProps` values
-  reactive; this source does not rely on the old behavior.
-- Vue Router: `^4.2.5` to `5.3.1`. Existing `createRouter`,
-  `createWebHistory`, navigation guards and `addRoute` calls remain in use.
-- Vite: `^5.0.10` to `8.3.0`, and `@vitejs/plugin-vue`: `^4.5.2` to `6.0.8`.
-  Vite 8 requires a modern Node.js runtime; the checked environment uses Node
-  25.8.1.
+- Axios：`^1.6.4` 升级至 `1.20.0`。
+- Element Plus：`^2.4.4` 升级至 `2.14.5`。
+- Pinia：`^2.1.7` 升级至 `4.0.3`，项目继续使用受支持的 setup store 与 options store API。
+- Vue：`^3.3.11` 升级至 `3.5.42`。Vue 3.5 使解构后的 `defineProps` 值具备响应性；当前代码不依赖旧行为。
+- Vue Router：`^4.2.5` 升级至 `5.3.1`，现有的 `createRouter`、`createWebHistory`、导航守卫和 `addRoute` 调用仍受支持。
+- Vite：`^5.0.10` 升级至 `8.3.0`；`@vitejs/plugin-vue`：`^4.5.2` 升级至 `6.0.8`。Vite 8 需要现代 Node.js 运行时，已在 Node 25.8.1 环境中验证。
 
-## Validation scope
+## 验证范围
 
-Run the Maven reactor build and the Vite production build after dependencies are
-installed. Any remaining failures should be treated as source or environment
-migrations, not silently resolved with version downgrades.
+安装依赖后，应执行 Maven reactor 构建与 Vite 生产构建。后续失败应视为源码或环境迁移问题处理，而不应通过降级依赖来掩盖。
 
-## Runtime compatibility rewrite
+## 运行时兼容性改造
 
-- Backend JSON processing now uses Spring Boot 4's Jackson 3 mapper. The prior
-  Jackson 2 global mapper configuration did not configure MVC's Jackson 3
-  converter. Date fields now declare their API formats explicitly with
-  `@JsonFormat`, preserving `yyyy-MM-dd` and `yyyy-MM-dd HH:mm:ss` contracts.
-- The JSON login filter and every custom security response share the configured
-  application mapper rather than creating ad-hoc mappers.
-- The frontend uses Vue Router's return-value navigation guards instead of the
-  legacy `next` callback. Dynamic menu loading now propagates failures and
-  safely returns users to login when a session cannot be restored.
-- Axios now has a valid pass-through request interceptor and handles failures
-  without assuming a network error has an HTTP response. Element Plus paging and
-  keyboard events use current Vue 3-compatible bindings.
+- 后端 JSON 处理改用 Spring Boot 4 的 Jackson 3 Mapper。旧 Jackson 2 的全局 Mapper 配置无法影响 MVC 的 Jackson 3 Converter。日期字段改为显式使用 `@JsonFormat` 声明接口格式，保持 `yyyy-MM-dd` 与 `yyyy-MM-dd HH:mm:ss` 契约。
+- JSON 登录过滤器和全部自定义安全响应共用应用配置的 Mapper，不再临时创建 Mapper。
+- 前端使用 Vue Router 的返回值式导航守卫，替代旧的 `next` 回调。动态菜单加载会传播失败，并在会话恢复失败时安全回到登录页。
+- Axios 使用有效的请求透传拦截器，并在网络异常不存在 HTTP 响应时安全处理。Element Plus 分页和键盘事件改为当前 Vue 3 兼容绑定。
