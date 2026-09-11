@@ -42,5 +42,4 @@ vhr-vue.zip
 .env.*
 !.env.example
 .vscode/
-package-lock.json
 .gitignore

@@ -27,7 +27,7 @@ public class JsonFilter extends UsernamePasswordAuthenticationFilter {
             throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
         }
         String contentType = request.getContentType();
-        if (contentType.equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE) || contentType.equalsIgnoreCase(MediaType.APPLICATION_JSON_UTF8_VALUE)) {
+        if (contentType != null && MediaType.APPLICATION_JSON.isCompatibleWith(MediaType.parseMediaType(contentType))) {
             //认为前端传来的是 JSON 格式的参数
             try {
                 //通过 IO 流的形式去解析请求体中的参数
