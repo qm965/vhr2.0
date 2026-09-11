@@ -2,7 +2,7 @@
   <div>
     <div>
       <el-input
-          @keydown.enter.native="handleAdd"
+          @keyup.enter="handleAdd"
           v-model="addPos.name"
           style="width: 300px"
           placeholder="请输入职位名称"
@@ -49,7 +49,10 @@
       </el-table>
       <div style="display: flex;justify-content: flex-end">
         <el-pagination background
-                       @change="paginationChange"
+                       v-model:current-page="page"
+                       v-model:page-size="size"
+                       @current-change="positionList"
+                       @size-change="positionList"
                        :page-sizes="[5,10,20,30,50,100]"
                        layout="sizes,prev, pager, next, jumper, ->, total" :total="total"/>
       </div>
@@ -111,7 +114,7 @@ const data = reactive({
   page: 1,
   size: 10,
   dialogVisible: false,
-  updatePos: undefined,
+  updatePos: {name: '', enabled: true},
   addPos: {name: ''}
 })
 const {positions, total, page, size, updatePos, dialogVisible, addPos} = toRefs(data);
@@ -136,12 +139,6 @@ function handleUpdate(row) {
     //更新完毕，刷新
     positionList();
   })
-}
-
-function paginationChange(newPage, newSize) {
-  page.value = newPage;
-  size.value = newSize;
-  positionList();
 }
 
 function positionList() {

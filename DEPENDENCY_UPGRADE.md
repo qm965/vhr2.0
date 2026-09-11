@@ -48,3 +48,18 @@ dependencies.
 Run the Maven reactor build and the Vite production build after dependencies are
 installed. Any remaining failures should be treated as source or environment
 migrations, not silently resolved with version downgrades.
+
+## Runtime compatibility rewrite
+
+- Backend JSON processing now uses Spring Boot 4's Jackson 3 mapper. The prior
+  Jackson 2 global mapper configuration did not configure MVC's Jackson 3
+  converter. Date fields now declare their API formats explicitly with
+  `@JsonFormat`, preserving `yyyy-MM-dd` and `yyyy-MM-dd HH:mm:ss` contracts.
+- The JSON login filter and every custom security response share the configured
+  application mapper rather than creating ad-hoc mappers.
+- The frontend uses Vue Router's return-value navigation guards instead of the
+  legacy `next` callback. Dynamic menu loading now propagates failures and
+  safely returns users to login when a session cannot be restored.
+- Axios now has a valid pass-through request interceptor and handles failures
+  without assuming a network error has an HTTP response. Element Plus paging and
+  keyboard events use current Vue 3-compatible bindings.

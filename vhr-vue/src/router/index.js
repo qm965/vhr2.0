@@ -1,9 +1,5 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 import LoginView from "@/views/LoginView.vue";
-import UserList from "@/views/user/UserList.vue";
-import UserAnalysis from "@/views/user/UserAnalysis.vue";
-import UserLog from "@/views/user/UserLog.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,22 +17,22 @@ const router = createRouter({
         {
             path: '/home',
             name: '首页',
-            component: HomeView,
+            component: () => import('@/views/HomeView.vue'),
             children: [
                 {
                     path: '/list',
                     name: '用户列表',
-                    component: UserList
+                    component: () => import('@/views/user/UserList.vue')
                 },
                 {
                     path: '/analysis',
                     name: '用户分析',
-                    component: UserAnalysis
+                    component: () => import('@/views/user/UserAnalysis.vue')
                 },
                 {
                     path: '/log',
                     name: '用户日志',
-                    component: UserLog
+                    component: () => import('@/views/user/UserLog.vue')
                 }
             ]
         },

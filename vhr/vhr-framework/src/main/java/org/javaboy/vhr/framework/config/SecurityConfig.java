@@ -1,36 +1,27 @@
 package org.javaboy.vhr.framework.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.javaboy.vhr.framework.entity.Hr;
 import org.javaboy.vhr.framework.entity.RespBean;
 import org.javaboy.vhr.framework.entity.Role;
 import org.javaboy.vhr.framework.entity.vo.MenuWithRole;
 import org.javaboy.vhr.framework.service.IHrService;
 import org.javaboy.vhr.framework.service.IMenuService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.authorization.AuthorizationDecision;
-import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.util.AntPathMatcher;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * @author：江南一点雨
@@ -41,12 +32,16 @@ import java.util.function.Supplier;
  */
 @Configuration
 public class SecurityConfig {
+    private final IHrService hrService;
+    private final IMenuService menuService;
+    private final ObjectMapper objectMapper;
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
-    @Autowired
-    IHrService hrService;
-    @Autowired
-    IMenuService menuService;
-    AntPathMatcher antPathMatcher = new AntPathMatcher();
+    public SecurityConfig(IHrService hrService, IMenuService menuService, ObjectMapper objectMapper) {
+        this.hrService = hrService;
+        this.menuService = menuService;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * 当我们登录成功之后，Security 会自动将用户信息存入到两个地方：
@@ -61,14 +56,14 @@ public class SecurityConfig {
      */
     @Bean
     JsonFilter jsonFilter() {
-        JsonFilter jsonFilter = new JsonFilter();
+        JsonFilter jsonFilter = new JsonFilter(objectMapper);
         //登录地址
         jsonFilter.setFilterProcessesUrl("/login");
         jsonFilter.setAuthenticationSuccessHandler((req, resp, auth) -> {
             resp.setContentType("application/json;charset=utf-8");
             Hr principal = (Hr) auth.getPrincipal();
             principal.setPassword(null);
-            resp.getWriter().write(new ObjectMapper().writeValueAsString(RespBean.ok("登录成功", principal)));
+            resp.getWriter().write(objectMapper.writeValueAsString(RespBean.ok("登录成功", principal)));
         });
         jsonFilter.setAuthenticationFailureHandler((req, resp, e) -> {
             resp.setContentType("application/json;charset=utf-8");
@@ -84,7 +79,7 @@ public class SecurityConfig {
             } else if (e instanceof CredentialsExpiredException) {
                 error.setMessage("密码过期，登录失败");
             }
-            resp.getWriter().write(new ObjectMapper().writeValueAsString(error));
+            resp.getWriter().write(objectMapper.writeValueAsString(error));
         });
         jsonFilter.setAuthenticationManager(authenticationManager());
         jsonFilter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
@@ -155,7 +150,7 @@ public class SecurityConfig {
                             resp.setContentType("application/json;charset=utf-8");
                             Hr principal = (Hr) auth.getPrincipal();
                             principal.setPassword(null);
-                            resp.getWriter().write(new ObjectMapper().writeValueAsString(RespBean.ok("登录成功", principal)));
+                            resp.getWriter().write(objectMapper.writeValueAsString(RespBean.ok("登录成功", principal)));
                         }).failureHandler((req, resp, e) -> {
                             resp.setContentType("application/json;charset=utf-8");
                             RespBean error = RespBean.error("登录失败");
@@ -170,14 +165,14 @@ public class SecurityConfig {
                             } else if (e instanceof CredentialsExpiredException) {
                                 error.setMessage("密码过期，登录失败");
                             }
-                            resp.getWriter().write(new ObjectMapper().writeValueAsString(error));
+                            resp.getWriter().write(objectMapper.writeValueAsString(error));
                         }))
                 .csrf(c -> c.disable())
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, resp, ex) -> {
                     resp.setContentType("application/json;charset=utf-8");
                     resp.setStatus(401);
                     RespBean error = RespBean.error("尚未登录，请先登录");
-                    resp.getWriter().write(new ObjectMapper().writeValueAsString(error));
+                    resp.getWriter().write(objectMapper.writeValueAsString(error));
                 }))
                 .logout(logout -> {
                     logout
@@ -187,7 +182,7 @@ public class SecurityConfig {
                                 resp.setContentType("application/json;charset=utf-8");
                                 Hr principal = (Hr) auth.getPrincipal();
                                 principal.setPassword(null);
-                                resp.getWriter().write(new ObjectMapper().writeValueAsString(RespBean.ok("注销成功", principal)));
+                                resp.getWriter().write(objectMapper.writeValueAsString(RespBean.ok("注销成功", principal)));
                             });
                 });
         //这个实际上就是在默认的过滤器基础之上进行构建

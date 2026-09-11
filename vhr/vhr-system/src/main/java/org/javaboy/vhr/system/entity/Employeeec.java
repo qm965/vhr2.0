@@ -2,6 +2,7 @@ package org.javaboy.vhr.system.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -28,6 +29,7 @@ public class Employeeec implements Serializable {
     /**
      * 奖罚日期
      */
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate ecDate;
 
     /**

@@ -1,6 +1,5 @@
 package org.javaboy.vhr.framework.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.javaboy.vhr.framework.entity.Hr;
@@ -10,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
@@ -21,6 +21,12 @@ import java.io.IOException;
  * @gitee：https://gitee.com/lenve
  */
 public class JsonFilter extends UsernamePasswordAuthenticationFilter {
+    private final ObjectMapper objectMapper;
+
+    public JsonFilter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         if (!request.getMethod().equals("POST")) {
@@ -31,7 +37,7 @@ public class JsonFilter extends UsernamePasswordAuthenticationFilter {
             //认为前端传来的是 JSON 格式的参数
             try {
                 //通过 IO 流的形式去解析请求体中的参数
-                Hr hr = new ObjectMapper().readValue(request.getInputStream(), Hr.class);
+                Hr hr = objectMapper.readValue(request.getInputStream(), Hr.class);
                 String username = hr.getUsername();
                 username = (username != null) ? username.trim() : "";
                 String password = hr.getPassword();

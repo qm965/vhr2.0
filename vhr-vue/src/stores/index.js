@@ -1,9 +1,13 @@
 import {ref, computed} from 'vue'
 import {defineStore} from 'pinia'
 import {loadMenus} from "@/api/menus.js";
-import HomeView from "@/views/HomeView.vue";
 
-const modules = import.meta.glob('@/views/**/*.vue');
+const modules = import.meta.glob([
+    '@/views/**/*.vue',
+    '!@/views/HomeView.vue',
+    '!@/views/LoginView.vue',
+]);
+const homeView = () => import('@/views/HomeView.vue');
 export const useCounterStore = defineStore('counter', () => {
     const count = ref(0)
     const doubleCount = computed(() => count.value * 2)
@@ -25,41 +29,38 @@ export const menusStore = defineStore('menus', {
         clearMenus() {
             this.menus = [];
         },
-        initMenus() {
-            return new Promise(resolve => {
-                loadMenus().then(res => {
-                    this.menus = res.data;
-                    let fmtMenus = formatMenus(res.data);
-                    resolve(fmtMenus);
-                })
-            })
+        async initMenus() {
+            const response = await loadMenus();
+            const menus = Array.isArray(response.data) ? response.data : [];
+            this.menus = menus;
+            return formatMenus(menus);
         },
     }
 })
 
 function formatMenus(menus) {
-    let result = [];
-    menus.forEach(menu => {
+    return menus.map(menu => {
         let {path, name, children, component} = menu;
-        if (children && children instanceof Array) {
+        if (Array.isArray(children)) {
             //递归去格式化 children
             children = formatMenus(children);
         }
-        let formatM = {
+        return {
             path: path,
             name: name,
             children: children,
             component: loadView(component)
         }
-        result.push(formatM);
-    })
-    return result;
+    });
 }
 
 function loadView(viewPath) {
-    if (viewPath == '/src/views/HomeView.vue') {
-        return HomeView;
-    } else {
-        return modules[viewPath];
+    if (viewPath === '/src/views/HomeView.vue') {
+        return homeView;
     }
+    const component = modules[viewPath];
+    if (!component) {
+        throw new Error(`未找到菜单组件: ${viewPath}`);
+    }
+    return component;
 }
