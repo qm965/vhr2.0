@@ -32,7 +32,7 @@ public class PositionController {
 
     @PutMapping
     public RespBean updatePositionById(@RequestBody Position position) {
-        return positionService.updateById(position) ? RespBean.ok("更新成功") : RespBean.error("更新失败");
+        return positionService.updatePosition(position);
     }
 
     @PostMapping

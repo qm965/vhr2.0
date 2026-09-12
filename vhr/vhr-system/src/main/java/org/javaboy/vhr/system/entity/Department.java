@@ -2,7 +2,10 @@ package org.javaboy.vhr.system.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -31,6 +34,10 @@ public class Department implements Serializable {
     private Boolean enabled;
 
     private Boolean isParent;
+
+    /** 仅用于部门树响应，不映射数据库字段。 */
+    @TableField(exist = false)
+    private List<Department> children = new ArrayList<>();
 
     public Integer getId() {
         return id;
@@ -78,6 +85,14 @@ public class Department implements Serializable {
 
     public void setIsParent(Boolean isParent) {
         this.isParent = isParent;
+    }
+
+    public List<Department> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<Department> children) {
+        this.children = children;
     }
 
     @Override

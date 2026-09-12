@@ -35,6 +35,10 @@ public class PositionServiceImpl extends ServiceImpl<PositionMapper, Position> i
 
     @Override
     public RespBean addPosition(Position position) {
+        if (position == null || position.getName() == null || position.getName().isBlank()) {
+            return RespBean.error("职位名称不能为空");
+        }
+        position.setName(position.getName().trim());
         QueryWrapper<Position> qw = new QueryWrapper<>();
         qw.lambda().eq(Position::getName, position.getName());
         Position one = getOne(qw);
@@ -49,12 +53,36 @@ public class PositionServiceImpl extends ServiceImpl<PositionMapper, Position> i
     }
 
     @Override
+    public RespBean updatePosition(Position position) {
+        if (position == null || position.getId() == null || getById(position.getId()) == null) {
+            return RespBean.error("职位不存在");
+        }
+        if (position.getName() == null || position.getName().isBlank()) {
+            return RespBean.error("职位名称不能为空");
+        }
+        String name = position.getName().trim();
+        boolean duplicate = count(new QueryWrapper<Position>().lambda()
+                .eq(Position::getName, name)
+                .ne(Position::getId, position.getId())) > 0;
+        if (duplicate) {
+            return RespBean.error("职位名称重复");
+        }
+        Position existing = getById(position.getId());
+        existing.setName(name);
+        existing.setEnabled(position.getEnabled() == null ? existing.getEnabled() : position.getEnabled());
+        return updateById(existing) ? RespBean.ok("更新成功") : RespBean.error("更新失败");
+    }
+
+    @Override
     public RespBean deletePositionById(Integer id) {
         Position one = getById(id);
         if (one == null) {
             //要删除的数据不存在
             return RespBean.error("数据不存在，删除失败");
         }
-        return removeById(id) ? RespBean.ok("删除成功") : RespBean.ok("删除失败");
+        if (baseMapper.countEmployeesByPositionId(id) > 0) {
+            return RespBean.error("该职位下存在员工，无法删除");
+        }
+        return removeById(id) ? RespBean.ok("删除成功") : RespBean.error("删除失败");
     }
 }

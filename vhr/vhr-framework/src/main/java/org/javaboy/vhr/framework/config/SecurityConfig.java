@@ -14,9 +14,12 @@ import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.AntPathMatcher;
 import tools.jackson.databind.ObjectMapper;
 
@@ -89,6 +92,11 @@ public class SecurityConfig {
     @Bean
     AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(hrService);
+        // 旧库仍有 {noop} 明文标识密码，新建账号使用未带前缀的 BCrypt 哈希。
+        // 委托编码器保证旧账号可登录，同时默认按 BCrypt 验证新哈希。
+        DelegatingPasswordEncoder passwordEncoder = (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        passwordEncoder.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder());
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
         ProviderManager providerManager = new ProviderManager(daoAuthenticationProvider);
         return providerManager;
     }

@@ -19,5 +19,7 @@ public interface IPositionService extends IService<Position> {
 
     RespBean addPosition(Position position);
 
+    RespBean updatePosition(Position position);
+
     RespBean deletePositionById(Integer id);
 }

@@ -12,6 +12,8 @@ node_modules
 dist
 dist-ssr
 coverage
+playwright-report/
+test-results/
 *.local
 
 npm-debug.log*
@@ -40,6 +42,7 @@ vhr-vue.zip
 *.tsbuildinfo
 .env
 .env.*
+!.env.e2e.example
 !.env.example
 .vscode/
 .gitignore

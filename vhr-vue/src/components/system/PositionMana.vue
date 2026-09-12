@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <section v-loading="loading">
     <div>
       <el-input
           @keyup.enter="handleAdd"
@@ -23,7 +23,7 @@
         <el-table-column label="是否启用">
           <template #default="scope">
             <el-switch
-                @change="handleUpdate(scope.row)"
+                @change="handleEnabledChange(scope.row)"
                 v-model="scope.row.enabled"
                 inline-prompt
                 active-text="是"
@@ -92,7 +92,7 @@
       </span>
       </template>
     </el-dialog>
-  </div>
+  </section>
 </template>
 
 <script setup>
@@ -115,41 +115,47 @@ const data = reactive({
   size: 10,
   dialogVisible: false,
   updatePos: {name: '', enabled: true},
-  addPos: {name: ''}
+  addPos: {name: ''},
+  loading: false
 })
-const {positions, total, page, size, updatePos, dialogVisible, addPos} = toRefs(data);
+const {positions, total, page, size, updatePos, dialogVisible, addPos, loading} = toRefs(data);
 
-function handleAdd() {
-  addPosition(addPos.value).then(res => {
-    positionList();
-    addPos.value.name = '';
-  })
+async function handleAdd() {
+  if (!addPos.value.name.trim()) return ElMessage.warning('请输入职位名称')
+  await addPosition(addPos.value)
+  await positionList()
+  addPos.value.name = ''
 }
 
-function handleEdit(index, data) {
-  getPositionById(data.id).then(res => {
-    dialogVisible.value = true;
-    updatePos.value = res.data;
-  })
+async function handleEdit(index, data) {
+  const response = await getPositionById(data.id)
+  dialogVisible.value = true
+  updatePos.value = response.data
 }
 
-function handleUpdate(row) {
-  updatePosition(row).then(res => {
-    dialogVisible.value = false;
-    //更新完毕，刷新
-    positionList();
-  })
+async function handleUpdate(row) {
+  if (!row.name?.trim()) return ElMessage.warning('请输入职位名称')
+  await updatePosition(row)
+  dialogVisible.value = false
+  await positionList()
 }
 
-function positionList() {
-  loadAllPositions({page: page.value, size: size.value}).then(res => {
-    positions.value = res.data;
-    total.value = res.total;
-  })
+async function handleEnabledChange(row) {
+  try { await updatePosition(row); await positionList() } catch { await positionList() }
 }
 
-function handleDelete(index, row) {
-  ElMessageBox.confirm(
+async function positionList() {
+  loading.value = true
+  try {
+    const response = await loadAllPositions({page: page.value, size: size.value})
+    positions.value = response.data
+    total.value = response.total
+  } finally { loading.value = false }
+}
+
+async function handleDelete(index, row) {
+  try {
+    await ElMessageBox.confirm(
       '此操作将删除【' + row.name + '】部门，是否继续?',
       'Warning',
       {
@@ -157,18 +163,12 @@ function handleDelete(index, row) {
         cancelButtonText: '取消',
         type: 'warning',
       }
-  )
-      .then(() => {
-        deletePositionById(row.id).then(res => {
-          positionList();
-        })
-      })
-      .catch(() => {
-        ElMessage({
-          type: 'info',
-          message: '取消删除',
-        })
-      })
+    )
+    await deletePositionById(row.id)
+    await positionList()
+  } catch (error) {
+    if (error !== 'cancel' && error !== 'close') ElMessage.error(error.message || '删除职位失败')
+  }
 }
 
 positionList();
