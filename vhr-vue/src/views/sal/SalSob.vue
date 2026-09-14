@@ -1,13 +1,2 @@
-<template>
-    <div>
-        帐套管理
-    </div>
-</template>
-
-<script>
-
-</script>
-
-<style scoped>
-
-</style>
+<template><section><el-button type="primary" @click="open()">新增工资账套</el-button><el-table :data="rows" style="margin-top:16px"><el-table-column prop="name" label="账套名称"/><el-table-column prop="basicSalary" label="基本工资"/><el-table-column prop="bonus" label="奖金"/><el-table-column prop="lunchSalary" label="午餐补助"/><el-table-column prop="trafficSalary" label="交通补助"/><el-table-column label="操作"><template #default="{row}"><el-button link type="primary" @click="open(row)">编辑</el-button><el-button link type="danger" @click="remove(row.id)">删除</el-button></template></el-table-column></el-table><el-dialog v-model="visible" :title="form.id?'编辑工资账套':'新增工资账套'" width="500"><el-form :model="form" label-width="100"><el-form-item label="账套名称"><el-input v-model="form.name"/></el-form-item><el-form-item label="基本工资"><el-input-number v-model="form.basicSalary" :min="0"/></el-form-item><el-form-item label="奖金"><el-input-number v-model="form.bonus" :min="0"/></el-form-item><el-form-item label="午餐补助"><el-input-number v-model="form.lunchSalary" :min="0"/></el-form-item><el-form-item label="交通补助"><el-input-number v-model="form.trafficSalary" :min="0"/></el-form-item></el-form><template #footer><el-button @click="visible=false">取消</el-button><el-button type="primary" @click="save">保存</el-button></template></el-dialog></section></template>
+<script setup>import {ref,onMounted} from 'vue';import {ElMessageBox} from 'element-plus';import {salaries,addSalary,updateSalary,deleteSalary} from '@/api/salary.js';const rows=ref([]),visible=ref(false),form=ref({});async function load(){rows.value=(await salaries()).data??[]}function open(row){form.value=row?{...row}:{};visible.value=true}async function save(){await(form.value.id?updateSalary(form.value):addSalary(form.value));visible.value=false;load()}async function remove(id){await ElMessageBox.confirm('确定删除该账套吗？','提示',{type:'warning'});await deleteSalary(id);load()}onMounted(load)</script>

@@ -1,13 +1,9 @@
 <template>
-    <div>
-        基本资料
-    </div>
+  <section><el-space wrap><el-input v-model="keyword" placeholder="按姓名查询" clearable @keyup.enter="load"/><el-button type="primary" @click="open()">新增员工</el-button><el-button @click="load">查询</el-button></el-space><el-table :data="rows" v-loading="loading" style="width:100%;margin-top:16px"><el-table-column prop="workID" label="工号" width="105"/><el-table-column prop="name" label="姓名"/><el-table-column prop="gender" label="性别" width="80"/><el-table-column prop="phone" label="电话"/><el-table-column prop="email" label="邮箱"/><el-table-column prop="beginDate" label="入职日期"/><el-table-column label="操作" width="150"><template #default="{row}"><el-button link type="primary" @click="open(row)">编辑</el-button><el-button link type="danger" @click="remove(row.id)">删除</el-button></template></el-table-column></el-table><el-pagination v-model:current-page="page" v-model:page-size="size" :total="total" layout="total, prev, pager, next" @current-change="load" style="margin-top:16px"/><el-dialog v-model="visible" :title="form.id ? '编辑员工' : '新增员工'" width="520"><el-form :model="form" label-width="90"><el-form-item label="工号"><el-input v-model="form.workID"/></el-form-item><el-form-item label="姓名"><el-input v-model="form.name"/></el-form-item><el-form-item label="性别"><el-radio-group v-model="form.gender"><el-radio value="男">男</el-radio><el-radio value="女">女</el-radio></el-radio-group></el-form-item><el-form-item label="电话"><el-input v-model="form.phone"/></el-form-item><el-form-item label="邮箱"><el-input v-model="form.email"/></el-form-item><el-form-item label="入职日期"><el-date-picker v-model="form.beginDate" value-format="YYYY-MM-DD" type="date"/></el-form-item><el-form-item label="在职状态"><el-select v-model="form.workState"><el-option label="在职" value="在职"/><el-option label="离职" value="离职"/></el-select></el-form-item></el-form><template #footer><el-button @click="visible=false">取消</el-button><el-button type="primary" @click="save">保存</el-button></template></el-dialog></section>
 </template>
-
-<script>
-
+<script setup>
+import {ref,onMounted} from 'vue'; import {ElMessageBox} from 'element-plus'; import {employees,addEmployee,updateEmployee,deleteEmployee,employeeOptions} from '@/api/employee.js';
+const rows=ref([]),total=ref(0),page=ref(1),size=ref(10),keyword=ref(''),loading=ref(false),visible=ref(false),form=ref({});
+async function load(){loading.value=true;try{const r=await employees({page:page.value,size:size.value,name:keyword.value});total.value=r.total;rows.value=r.data}catch{}finally{loading.value=false}}
+async function open(row){form.value=row?{...row}:{workState:'在职'};if(!row){try{form.value.workID=(await employeeOptions('maxWorkID')).data}catch{}}visible.value=true} async function save(){await(form.value.id?updateEmployee(form.value):addEmployee(form.value));visible.value=false;load()} async function remove(id){await ElMessageBox.confirm('确定删除该员工吗？','提示',{type:'warning'});await deleteEmployee(id);load()} onMounted(load)
 </script>
-
-<style>
-
-</style>
