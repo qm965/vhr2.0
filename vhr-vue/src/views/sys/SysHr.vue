@@ -1,12 +1,2 @@
-<template>
-    <div>
-        操作员管理
-    </div>
-</template>
-
-<script>
-</script>
-
-<style>
-
-</style>
+<template><section><el-input v-model="keyword" placeholder="按姓名或账号搜索" clearable @keyup.enter="load" style="width:240px"/><el-button @click="load">查询</el-button><el-table :data="rows" style="margin-top:16px"><el-table-column prop="name" label="姓名"/><el-table-column prop="username" label="账号"/><el-table-column prop="phone" label="手机"/><el-table-column label="状态"><template #default="{row}"><el-tag :type="row.enabled?'success':'info'">{{row.enabled?'启用':'停用'}}</el-tag></template></el-table-column><el-table-column label="角色"><template #default="{row}"><el-tag v-for="role in row.roles" :key="role.id" style="margin-right:4px">{{role.name}}</el-tag></template></el-table-column><el-table-column label="操作"><template #default="{row}"><el-button link type="primary" @click="assign(row)">分配角色</el-button><el-button link type="danger" @click="remove(row.id)">删除</el-button></template></el-table-column></el-table><el-dialog v-model="visible" title="分配角色" width="440"><el-checkbox-group v-model="selected"><el-checkbox v-for="role in allRoles" :key="role.id" :value="role.id">{{role.name}}</el-checkbox></el-checkbox-group><template #footer><el-button @click="visible=false">取消</el-button><el-button type="primary" @click="save">保存</el-button></template></el-dialog></section></template>
+<script setup>import {onMounted,ref} from 'vue';import {ElMessageBox} from 'element-plus';import {hrs,roles,updateRoles,deleteHr} from '@/api/hr.js';const rows=ref([]),allRoles=ref([]),keyword=ref(''),visible=ref(false),selected=ref([]),current=ref(null);async function load(){rows.value=(await hrs(keyword.value)).data??[]}async function assign(hr){current.value=hr;selected.value=(hr.roles??[]).map(x=>x.id);allRoles.value=(await roles()).data??[];visible.value=true}async function save(){await updateRoles(current.value.id,selected.value);visible.value=false;load()}async function remove(id){await ElMessageBox.confirm('确定删除该操作员吗？','提示',{type:'warning'});await deleteHr(id);load()}onMounted(load)</script>

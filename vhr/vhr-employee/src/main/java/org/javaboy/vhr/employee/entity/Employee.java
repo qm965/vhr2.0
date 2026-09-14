@@ -3,6 +3,7 @@ package org.javaboy.vhr.employee.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDate;
 
@@ -16,4 +17,5 @@ public class Employee {
     @JsonFormat(pattern = "yyyy-MM-dd") public LocalDate birthday, beginDate, conversionTime, notWorkDate, beginContract, endContract;
     public Double contractTerm;
     public Integer workAge;
+    @TableField(exist = false) public Integer salaryId;
 }

@@ -1,13 +1,2 @@
-<template>
-    <div>
-        帐套设置
-    </div>
-</template>
-
-<script>
-
-</script>
-
-<style scoped>
-
-</style>
+<template><section><el-table :data="rows"><el-table-column prop="name" label="姓名"/><el-table-column prop="workID" label="工号"/><el-table-column prop="email" label="邮箱"/><el-table-column label="工资账套"><template #default="{row}"><el-select v-model="row.salaryId" clearable placeholder="暂未设置" @change="set(row)"><el-option v-for="salary in salaries" :key="salary.id" :label="salary.name" :value="salary.id"/></el-select></template></el-table-column></el-table></section></template>
+<script setup>import {onMounted,ref} from 'vue';import {assignments,salaryOptions,assignSalary} from '@/api/salary-config.js';const rows=ref([]),salaries=ref([]);async function load(){rows.value=(await assignments()).data??[];salaries.value=(await salaryOptions()).data??[]}async function set(row){await assignSalary(row.id,row.salaryId)}onMounted(load)</script>
