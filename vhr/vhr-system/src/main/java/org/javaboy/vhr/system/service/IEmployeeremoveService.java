@@ -1,0 +1,1 @@
+package org.javaboy.vhr.system.service;import com.baomidou.mybatisplus.extension.service.IService;import org.javaboy.vhr.system.entity.Employeeremove;public interface IEmployeeremoveService extends IService<Employeeremove>{}
