@@ -1,0 +1,1 @@
+package org.javaboy.vhr.system.service;import com.baomidou.mybatisplus.extension.service.IService;import org.javaboy.vhr.system.entity.Employeetrain;public interface IEmployeetrainService extends IService<Employeetrain>{}

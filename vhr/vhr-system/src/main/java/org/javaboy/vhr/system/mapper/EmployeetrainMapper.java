@@ -1,0 +1,1 @@
+package org.javaboy.vhr.system.mapper;import com.baomidou.mybatisplus.core.mapper.BaseMapper;import org.javaboy.vhr.system.entity.Employeetrain;public interface EmployeetrainMapper extends BaseMapper<Employeetrain>{}
