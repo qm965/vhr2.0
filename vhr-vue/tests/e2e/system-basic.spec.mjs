@@ -10,6 +10,8 @@ test.describe('系统基础信息设置', () => {
     const stamp = Date.now()
     const positionName = `自动化测试职位-${stamp}`
     const departmentName = `自动化测试部门-${stamp}`
+    const targetDepartmentName = `自动化目标部门-${stamp}`
+    const movedDepartmentName = `${departmentName}-已移动`
     const joblevelName = `自动化测试职称-${stamp}`
     await page.goto('/')
     await page.getByPlaceholder('请输入用户名...').fill(username)
@@ -23,9 +25,21 @@ test.describe('系统基础信息设置', () => {
     const rootContent = page.locator('.el-tree > .el-tree-node > .el-tree-node__content').first()
     await rootContent.getByRole('button', {name: '添加下级'}).click()
     const departmentDialog = page.locator('.el-dialog').filter({hasText: '添加下级部门'})
+    await departmentDialog.locator('input').fill(targetDepartmentName)
+    await departmentDialog.getByRole('button', {name: '确认'}).click()
+    await expect(page.getByText(targetDepartmentName, {exact: true})).toBeVisible()
+
+    await rootContent.getByRole('button', {name: '添加下级'}).click()
     await departmentDialog.locator('input').fill(departmentName)
     await departmentDialog.getByRole('button', {name: '确认'}).click()
     await expect(page.getByText(departmentName, {exact: true})).toBeVisible()
+    await page.getByRole('button', {name: `编辑部门${departmentName}`}).click()
+    const editDialog = page.locator('.el-dialog').filter({hasText: '编辑部门'})
+    await editDialog.locator('input').first().fill(movedDepartmentName)
+    await editDialog.getByPlaceholder('请选择上级部门').click()
+    await page.getByRole('option', {name: new RegExp(`${targetDepartmentName}$`)}).click()
+    await editDialog.getByRole('button', {name: '保存'}).click()
+    await expect(page.getByText(movedDepartmentName, {exact: true})).toBeVisible()
 
     await page.getByRole('tab', {name: '职位管理'}).click()
     await page.getByPlaceholder('请输入职位名称').fill(positionName)

@@ -77,6 +77,48 @@ class SystemBasicIntegrationTests {
     }
 
     @Test
+    void canRenameAndMoveDepartmentSubtreeWithValidation() {
+        String stamp = String.valueOf(System.currentTimeMillis());
+        Department root = departmentService.getDepartmentTree().get(0);
+        Department movable = addChild(root.getId(), "可移动部门-" + stamp);
+        Department child = addChild(movable.getId(), "可移动子部门-" + stamp);
+        Department target = addChild(root.getId(), "目标部门-" + stamp);
+
+        Department moveRequest = new Department();
+        moveRequest.setName(movable.getName());
+        moveRequest.setParentId(target.getId());
+        assertEquals(200, departmentService.updateDepartment(movable.getId(), moveRequest).getStatus());
+        Department moved = departmentService.getById(movable.getId());
+        Department movedChild = departmentService.getById(child.getId());
+        assertEquals(target.getId(), moved.getParentId());
+        assertEquals(target.getDepPath() + "." + moved.getId(), moved.getDepPath());
+        assertEquals(moved.getDepPath() + "." + movedChild.getId(), movedChild.getDepPath());
+
+        Department renameRequest = new Department();
+        renameRequest.setName("已改名部门-" + stamp);
+        renameRequest.setParentId(target.getId());
+        assertEquals(200, departmentService.updateDepartment(moved.getId(), renameRequest).getStatus());
+        assertEquals(moved.getDepPath(), departmentService.getById(moved.getId()).getDepPath());
+
+        Department duplicate = addChild(root.getId(), "重名部门-" + stamp);
+        addChild(target.getId(), duplicate.getName());
+        Department duplicateMoveRequest = new Department();
+        duplicateMoveRequest.setName(duplicate.getName());
+        duplicateMoveRequest.setParentId(target.getId());
+        assertEquals(500, departmentService.updateDepartment(duplicate.getId(), duplicateMoveRequest).getStatus());
+
+        Department invalidMoveRequest = new Department();
+        invalidMoveRequest.setName(target.getName());
+        invalidMoveRequest.setParentId(child.getId());
+        assertEquals(500, departmentService.updateDepartment(target.getId(), invalidMoveRequest).getStatus());
+
+        Department rootMoveRequest = new Department();
+        rootMoveRequest.setName(root.getName());
+        rootMoveRequest.setParentId(target.getId());
+        assertEquals(500, departmentService.updateDepartment(root.getId(), rootMoveRequest).getStatus());
+    }
+
+    @Test
     void httpEndpointsRequireLoginAndAcceptAdministratorSession() throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         assertEquals(401, client.send(HttpRequest.newBuilder(uri("/system/basic/departments")).GET().build(), HttpResponse.BodyHandlers.ofString()).statusCode());
@@ -96,5 +138,14 @@ class SystemBasicIntegrationTests {
 
     private URI uri(String path) {
         return URI.create("http://127.0.0.1:" + port + path);
+    }
+
+    private Department addChild(Integer parentId, String name) {
+        Department department = new Department();
+        department.setParentId(parentId);
+        department.setName(name);
+        RespBean response = departmentService.addChildDepartment(department);
+        assertEquals(200, response.getStatus());
+        return (Department) response.getData();
     }
 }

@@ -20,6 +20,8 @@ public interface IDepartmentService extends IService<Department> {
 
     RespBean addChildDepartment(Department department);
 
+    RespBean updateDepartment(Integer id, Department department);
+
     RespBean deleteDepartment(Integer id);
 
 }

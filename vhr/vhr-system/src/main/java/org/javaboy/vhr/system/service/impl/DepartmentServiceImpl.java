@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * <p>
@@ -77,6 +78,77 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
         }
         department.setChildren(new ArrayList<>());
         return RespBean.ok("添加部门成功", department);
+    }
+
+    @Override
+    @Transactional
+    public RespBean updateDepartment(Integer id, Department request) {
+        if (request == null || request.getName() == null || request.getName().isBlank() || request.getParentId() == null) {
+            return RespBean.error("部门名称和上级部门不能为空");
+        }
+        Department department = getById(id);
+        if (department == null) {
+            return RespBean.error("部门不存在");
+        }
+        boolean root = department.getParentId() == null || department.getParentId() == -1;
+        if (root && !Objects.equals(department.getParentId(), request.getParentId())) {
+            return RespBean.error("顶级部门不允许调整上级部门");
+        }
+        String name = request.getName().trim();
+        if (root) {
+            boolean duplicate = count(new LambdaQueryWrapper<Department>()
+                    .eq(Department::getParentId, department.getParentId())
+                    .eq(Department::getName, name)
+                    .ne(Department::getId, id)) > 0;
+            if (duplicate) {
+                return RespBean.error("同一上级部门下不允许重名");
+            }
+            department.setName(name);
+            return updateById(department) ? RespBean.ok("更新部门成功", department) : RespBean.error("更新部门失败");
+        }
+        Department targetParent = getById(request.getParentId());
+        if (targetParent == null) {
+            return RespBean.error("上级部门不存在");
+        }
+        if (Objects.equals(id, targetParent.getId())) {
+            return RespBean.error("上级部门不能是自身");
+        }
+        String oldPath = department.getDepPath();
+        if (oldPath != null && targetParent.getDepPath() != null && targetParent.getDepPath().startsWith(oldPath + ".")) {
+            return RespBean.error("上级部门不能是当前部门的子孙部门");
+        }
+        boolean duplicate = count(new LambdaQueryWrapper<Department>()
+                .eq(Department::getParentId, targetParent.getId())
+                .eq(Department::getName, name)
+                .ne(Department::getId, id)) > 0;
+        if (duplicate) {
+            return RespBean.error("同一上级部门下不允许重名");
+        }
+
+        Integer oldParentId = department.getParentId();
+        boolean parentChanged = !Objects.equals(oldParentId, targetParent.getId());
+        String newPath = targetParent.getDepPath() + "." + id;
+        department.setName(name);
+        if (parentChanged) {
+            department.setParentId(targetParent.getId());
+            department.setDepPath(newPath);
+        }
+        if (!updateById(department)) {
+            return RespBean.error("更新部门失败");
+        }
+        if (parentChanged) {
+            baseMapper.replaceDescendantPathPrefix(oldPath, newPath);
+            Department oldParent = getById(oldParentId);
+            if (oldParent != null && count(new LambdaQueryWrapper<Department>().eq(Department::getParentId, oldParent.getId())) == 0) {
+                oldParent.setIsParent(false);
+                updateById(oldParent);
+            }
+            if (!Boolean.TRUE.equals(targetParent.getIsParent())) {
+                targetParent.setIsParent(true);
+                updateById(targetParent);
+            }
+        }
+        return RespBean.ok("更新部门成功", department);
     }
 
     @Override

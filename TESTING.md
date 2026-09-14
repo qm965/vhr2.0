@@ -11,7 +11,7 @@ cd vhr
 mvn -pl vhr-web -am test
 ```
 
-当前第一批覆盖部门层级新增、父部门删除限制，以及职位新增与重名拦截。测试写入的数据会保留在开发测试库中。
+当前第一批覆盖部门层级新增、父部门删除限制、部门改名和子树移动（含同级重名、自身或子孙节点、顶级部门限制），以及职位新增与重名拦截。测试写入的数据会保留在开发测试库中。
 
 首次执行还会创建或更新仅供自动化使用的 `automation-test` 管理员账号；密码由本地 `.env.e2e` 配置，绝不提交到 Git。
 
@@ -26,7 +26,7 @@ cp .env.e2e.example .env.e2e
 npm run test:e2e
 ```
 
-Playwright 会自动在 `5174` 启动测试前端，并将 `/api` 代理到 `.env.e2e` 中的后端地址。写操作默认跳过，只有显式设定 `VHR_E2E_ALLOW_WRITE=true` 才会运行。报告可通过 `npm run test:e2e:report` 查看。
+Playwright 会自动在 `5174` 启动测试前端，并将 `/api` 代理到 `.env.e2e` 中的后端地址。当前回归覆盖部门新增、改名和移动，以及职位、职称新增。写操作默认跳过，只有显式设定 `VHR_E2E_ALLOW_WRITE=true` 才会运行。报告可通过 `npm run test:e2e:report` 查看。
 
 ## 一键执行公共测试底座
 
