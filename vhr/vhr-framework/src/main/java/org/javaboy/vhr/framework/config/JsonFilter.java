@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import org.springframework.security.authentication.BadCredentialsException;
 
 /**
  * @author：江南一点雨
@@ -38,6 +39,11 @@ public class JsonFilter extends UsernamePasswordAuthenticationFilter {
             try {
                 //通过 IO 流的形式去解析请求体中的参数
                 Hr hr = objectMapper.readValue(request.getInputStream(), Hr.class);
+                Object expected = request.getSession().getAttribute("verify_code");
+                if (expected == null || hr.getVerifyCode() == null || !expected.toString().equalsIgnoreCase(hr.getVerifyCode().trim())) {
+                    throw new BadCredentialsException("验证码错误或已过期");
+                }
+                request.getSession().removeAttribute("verify_code");
                 String username = hr.getUsername();
                 username = (username != null) ? username.trim() : "";
                 String password = hr.getPassword();

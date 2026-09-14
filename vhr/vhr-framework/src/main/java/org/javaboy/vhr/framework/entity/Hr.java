@@ -66,6 +66,12 @@ public class Hr implements Serializable, UserDetails {
 
     private String remark;
 
+    @TableField(exist = false)
+    private String verifyCode;
+
+    public String getVerifyCode() { return verifyCode; }
+    public void setVerifyCode(String verifyCode) { this.verifyCode = verifyCode; }
+
     /**
      * 因为我们使用了 MyBatisPLus，那么这里的 hr 就会和数据表中的 hr 表一一对应起来，当然 roles 字段也会对应，但是实际上数据表中并没有该字段，所以这里添加注解表示表中无该字段
      */

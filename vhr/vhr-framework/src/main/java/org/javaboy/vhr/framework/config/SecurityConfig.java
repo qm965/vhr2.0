@@ -116,6 +116,9 @@ public class SecurityConfig {
                     //1. 根据当前请求分析出来当前请求属于 menu 中的哪一种 http://localhost:8080/personnel/ec/hello（menu）
                     //1.1 获取当前请求 url 地址
                     String requestURI = object.getRequest().getRequestURI();
+                    if ("/verifyCode".equals(requestURI) || "/login".equals(requestURI)) {
+                        return new AuthorizationDecision(true);
+                    }
                     //1.2 和 menu 表中的记录进行比较
                     List<MenuWithRole> menuWithRoles = menuService.getAllMenusWithRole();
                     Authentication auth = authentication.get();

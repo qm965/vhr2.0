@@ -20,6 +20,7 @@
               <el-input v-model="hr.username" placeholder="请输入用户名..." clearable/>
             </td>
           </tr>
+          <tr><td>验证码：</td><td style="display:flex"><el-input v-model="hr.verifyCode" @keyup.enter="loginHandle"/><img :src="captcha" alt="验证码" title="点击刷新" style="width:110px;height:38px;margin-left:8px;cursor:pointer" @click="refresh"/></td></tr>
           <tr>
             <td>用户密码：</td>
             <td>
@@ -44,7 +45,7 @@
 </template>
 
 <script setup>
-import {reactive, toRefs} from "vue";
+import {reactive, ref, toRefs} from "vue";
 import {login} from "@/api/login.js";
 import {getCurrentInstance} from "vue";
 
@@ -55,6 +56,7 @@ const data = reactive({
   hr: {
     username: 'admin',
     password: '123'
+    ,verifyCode: ''
   },
   loading: false
 })
@@ -70,6 +72,8 @@ const svg = `
         " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
       `
 
+function refresh(){captcha.value=`/api/verifyCode?t=${Date.now()}`}
+const captcha = ref(`/api/verifyCode?t=${Date.now()}`)
 function loginHandle() {
   loading.value = true;
   login(hr.value).then(data => {
@@ -83,7 +87,7 @@ function loginHandle() {
     proxy.$router.replace(redirect ? redirect : '/home');
   }).catch(err => {
     // alert(JSON.stringify(err));
-    loading.value = false;
+    loading.value = false; refresh();
   })
 }
 </script>
