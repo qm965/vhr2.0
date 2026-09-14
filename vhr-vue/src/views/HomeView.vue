@@ -66,6 +66,10 @@ const {menus} = storeToRefs(menuStore)
 const hr = computed(() => JSON.parse(window.sessionStorage.getItem('hr') ?? '{}'))
 
 async function menuHandle(command) {
+  if (command === 'usercenter') {
+    await router.push('/hrinfo')
+    return
+  }
   if (command !== 'logout') {
     return
   }

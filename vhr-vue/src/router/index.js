@@ -45,6 +45,9 @@ const router = createRouter({
             // which is lazy-loaded when the route is visited.
             //相对于上面的 HomeView，这里的 AboutView 是一种懒加载，即在需要的时候才去加载页面
             component: () => import('../views/AboutView.vue')
+        },
+        {
+            path: '/hrinfo', name: '个人中心', component: () => import('@/views/HrInfo.vue')
         }
     ]
 })
