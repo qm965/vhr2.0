@@ -1,1 +1,0 @@
-package org.javaboy.vhr.system.mapper;import com.baomidou.mybatisplus.core.mapper.BaseMapper;import org.javaboy.vhr.system.entity.Employeeremove;public interface EmployeeremoveMapper extends BaseMapper<Employeeremove>{}

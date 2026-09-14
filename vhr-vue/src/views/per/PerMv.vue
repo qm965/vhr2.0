@@ -1,2 +1,15 @@
-<template><section><el-button type="primary" @click="open()">新增调动</el-button><el-table :data="rows" style="margin-top:16px"><el-table-column prop="eid" label="员工编号"/><el-table-column prop="removeDate" label="调动日期"/><el-table-column prop="afterDepid" label="调后部门 ID"/><el-table-column prop="afterJobid" label="调后职位 ID"/><el-table-column prop="reason" label="原因"/><el-table-column label="操作"><template #default="{row}"><el-button link @click="open(row)">编辑</el-button><el-button link type="danger" @click="remove(row.id)">删除</el-button></template></el-table-column></el-table><el-dialog v-model="visible" :title="form.id?'编辑调动':'新增调动'"><el-form :model="form" label-width="100"><el-form-item label="员工编号"><el-input-number v-model="form.eid"/></el-form-item><el-form-item label="调动日期"><el-date-picker v-model="form.removeDate" type="date" value-format="YYYY-MM-DD"/></el-form-item><el-form-item label="调后部门 ID"><el-input-number v-model="form.afterDepid"/></el-form-item><el-form-item label="调后职位 ID"><el-input-number v-model="form.afterJobid"/></el-form-item><el-form-item label="调动原因"><el-input v-model="form.reason"/></el-form-item><el-form-item label="备注"><el-input v-model="form.remark"/></el-form-item></el-form><template #footer><el-button @click="visible=false">取消</el-button><el-button type="primary" @click="save">保存</el-button></template></el-dialog></section></template>
-<script setup>import {onMounted,ref} from 'vue';import {ElMessageBox} from 'element-plus';import {moveRecords,addMove,updateMove,deleteMove} from '@/api/personnel.js';const rows=ref([]),form=ref({}),visible=ref(false);async function load(){rows.value=(await moveRecords()).data??[]}function open(row){form.value=row?{...row}:{};visible.value=true}async function save(){await(form.value.id?updateMove(form.value):addMove(form.value));visible.value=false;load()}async function remove(id){await ElMessageBox.confirm('确定删除该调动记录吗？','提示',{type:'warning'});await deleteMove(id);load()}onMounted(load)</script>
+<template>
+    <div>
+        员工调动
+    </div>
+</template>
+
+<script>
+    export default {
+        name: "PerMv"
+    }
+</script>
+
+<style scoped>
+
+</style>
