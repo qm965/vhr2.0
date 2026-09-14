@@ -12,6 +12,11 @@ import org.javaboy.vhr.system.service.IDepartmentService;
 import org.javaboy.vhr.system.service.IJoblevelService;
 import org.javaboy.vhr.system.service.IPositionService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 
 /** vhr 1.0 employee-basic API, implemented on the vhr2 MyBatis-Plus modules. */
@@ -27,4 +32,7 @@ public class EmpBasicController {
  @GetMapping("/nations") public List<Nation> nations(){return nations.selectList(null);} @GetMapping("/politicsstatus") public List<Politicsstatus> politics(){return politics.selectList(null);}
  @GetMapping("/joblevels") public Object joblevels(){return joblevels.list();} @GetMapping("/positions") public Object positions(){return positions.list();} @GetMapping("/deps") public Object deps(){return departments.getDepartmentTree();}
  @GetMapping("/maxWorkID") public RespBean maxWorkId(){ Employee e=employees.getOne(new QueryWrapper<Employee>().orderByDesc("work_id").last("limit 1")); int next=e==null?1:Integer.parseInt(e.workID)+1; return RespBean.ok("查询成功",String.format("%08d",next)); }
+ @GetMapping("/export") public void export(HttpServletResponse response) throws IOException {response.setContentType("text/csv;charset=UTF-8");response.setHeader("Content-Disposition","attachment; filename=employees.csv");try(Writer out=new OutputStreamWriter(response.getOutputStream(),StandardCharsets.UTF_8)){out.write("\uFEFF工号,姓名,性别,电话,邮箱,入职日期,状态\n");for(Employee e:employees.list()){out.write(csv(e.workID)+","+csv(e.name)+","+csv(e.gender)+","+csv(e.phone)+","+csv(e.email)+","+csv(e.beginDate==null?"":e.beginDate.toString())+","+csv(e.workState)+"\n");}}}
+ @PostMapping("/import") public RespBean importCsv(@RequestParam MultipartFile file) {if(file.isEmpty())return RespBean.error("请选择 CSV 文件");int count=0;try(BufferedReader in=new BufferedReader(new InputStreamReader(file.getInputStream(),StandardCharsets.UTF_8))){String line;boolean first=true;while((line=in.readLine())!=null){if(first){first=false;continue;}String[] c=line.replace("\uFEFF","").split(",",-1);if(c.length<2||c[1].isBlank())continue;Employee e=new Employee();e.workID=c[0].trim();e.name=c[1].trim();e.gender=c.length>2?c[2].trim():null;e.phone=c.length>3?c[3].trim():null;e.email=c.length>4?c[4].trim():null;e.beginDate=c.length>5&&!c[5].isBlank()?LocalDate.parse(c[5].trim()):null;e.workState=c.length>6?c[6].trim():"在职";employees.save(e);count++;}}catch(Exception e){return RespBean.error("导入失败：请使用导出模板的 CSV 格式");}return RespBean.ok("成功导入 "+count+" 名员工");}
+ private static String csv(String s){return s==null?"":"\""+s.replace("\"","\"\"")+"\"";}
 }
