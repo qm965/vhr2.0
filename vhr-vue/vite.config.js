@@ -16,6 +16,7 @@ export default defineConfig(({mode}) => {
       '/api': {
         target: apiTarget,
         changeOrigin: true,
+        ws: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       // 代理 WebSocket 或 Socket.IO：ws://127.0.0.1:5173/socket.io -> ws://localhost:5174/socket.io
