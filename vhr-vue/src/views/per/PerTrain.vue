@@ -1,2 +1,15 @@
-<template><section><el-button type="primary" @click="open()">新增培训</el-button><el-table :data="rows" style="margin-top:16px"><el-table-column prop="eid" label="员工编号"/><el-table-column prop="trainDate" label="培训日期"/><el-table-column prop="trainContent" label="培训内容"/><el-table-column prop="remark" label="备注"/><el-table-column label="操作"><template #default="{row}"><el-button link @click="open(row)">编辑</el-button><el-button link type="danger" @click="remove(row.id)">删除</el-button></template></el-table-column></el-table><el-dialog v-model="visible" :title="form.id?'编辑培训':'新增培训'"><el-form :model="form" label-width="90"><el-form-item label="员工编号"><el-input-number v-model="form.eid"/></el-form-item><el-form-item label="培训日期"><el-date-picker v-model="form.trainDate" type="date" value-format="YYYY-MM-DD"/></el-form-item><el-form-item label="培训内容"><el-input v-model="form.trainContent" type="textarea"/></el-form-item><el-form-item label="备注"><el-input v-model="form.remark"/></el-form-item></el-form><template #footer><el-button @click="visible=false">取消</el-button><el-button type="primary" @click="save">保存</el-button></template></el-dialog></section></template>
-<script setup>import {onMounted,ref} from 'vue';import {ElMessageBox} from 'element-plus';import {trainRecords,addTrain,updateTrain,deleteTrain} from '@/api/personnel.js';const rows=ref([]),form=ref({}),visible=ref(false);async function load(){rows.value=(await trainRecords()).data??[]}function open(row){form.value=row?{...row}:{};visible.value=true}async function save(){await(form.value.id?updateTrain(form.value):addTrain(form.value));visible.value=false;load()}async function remove(id){await ElMessageBox.confirm('确定删除该培训记录吗？','提示',{type:'warning'});await deleteTrain(id);load()}onMounted(load)</script>
+<template>
+    <div>
+        员工培训
+    </div>
+</template>
+
+<script>
+    export default {
+        name: "PerTrain"
+    }
+</script>
+
+<style scoped>
+
+</style>
