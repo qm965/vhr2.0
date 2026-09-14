@@ -1,15 +1,2 @@
-<template>
-    <div>
-        系统管理
-    </div>
-</template>
-
-<script>
-    export default {
-        name: "SysCfg"
-    }
-</script>
-
-<style scoped>
-
-</style>
+<template><section><el-button type="primary" @click="add">新增角色</el-button><el-table :data="rows" style="margin-top:16px"><el-table-column prop="nameZh" label="角色名称"/><el-table-column prop="name" label="角色标识"/><el-table-column label="操作"><template #default="{row}"><el-button link type="primary" @click="configure(row)">分配菜单</el-button><el-button link type="danger" @click="remove(row.id)">删除</el-button></template></el-table-column></el-table><el-dialog v-model="visible" title="角色菜单授权"><el-tree ref="tree" :data="allMenus" node-key="id" show-checkbox :props="{label:'name',children:'children'}"/><template #footer><el-button @click="visible=false">取消</el-button><el-button type="primary" @click="save">保存</el-button></template></el-dialog></section></template>
+<script setup>import {onMounted,ref} from 'vue';import {ElMessageBox} from 'element-plus';import {roles,menus,menuIds,savePermissions,addRole,deleteRole} from '@/api/permission.js';const rows=ref([]),allMenus=ref([]),visible=ref(false),current=ref(),tree=ref();async function load(){rows.value=(await roles()).data??[]}async function configure(role){current.value=role;allMenus.value=(await menus()).data??[];visible.value=true;setTimeout(async()=>tree.value.setCheckedKeys((await menuIds(role.id)).data??[]))}async function save(){await savePermissions(current.value.id,tree.value.getCheckedKeys());visible.value=false}async function add(){const {value}=await ElMessageBox.prompt('请输入角色名称','新增角色');await addRole({nameZh:value,name:value});load()}async function remove(id){await ElMessageBox.confirm('确定删除该角色吗？','提示',{type:'warning'});await deleteRole(id);load()}onMounted(load)</script>
