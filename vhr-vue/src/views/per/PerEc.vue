@@ -1,2 +1,15 @@
-<template><section><el-button type="primary" @click="open()">新增奖惩</el-button><el-table :data="rows" style="margin-top:16px"><el-table-column prop="eid" label="员工编号"/><el-table-column prop="ecDate" label="日期"/><el-table-column label="类型"><template #default="{row}"><el-tag :type="row.ecType?'danger':'success'">{{row.ecType?'惩罚':'奖励'}}</el-tag></template></el-table-column><el-table-column prop="ecReason" label="原因"/><el-table-column prop="ecPoint" label="分值"/><el-table-column label="操作"><template #default="{row}"><el-button link @click="open(row)">编辑</el-button><el-button link type="danger" @click="remove(row.id)">删除</el-button></template></el-table-column></el-table><el-dialog v-model="visible" :title="form.id?'编辑奖惩':'新增奖惩'"><el-form :model="form" label-width="80"><el-form-item label="员工编号"><el-input-number v-model="form.eid"/></el-form-item><el-form-item label="日期"><el-date-picker v-model="form.ecDate" type="date" value-format="YYYY-MM-DD"/></el-form-item><el-form-item label="类型"><el-radio-group v-model="form.ecType"><el-radio :value="0">奖励</el-radio><el-radio :value="1">惩罚</el-radio></el-radio-group></el-form-item><el-form-item label="原因"><el-input v-model="form.ecReason"/></el-form-item><el-form-item label="分值"><el-input-number v-model="form.ecPoint"/></el-form-item><el-form-item label="备注"><el-input v-model="form.remark" type="textarea"/></el-form-item></el-form><template #footer><el-button @click="visible=false">取消</el-button><el-button type="primary" @click="save">保存</el-button></template></el-dialog></section></template>
-<script setup>import {onMounted,ref} from 'vue';import {ElMessageBox} from 'element-plus';import {ecRecords,addEc,updateEc,deleteEc} from '@/api/personnel.js';const rows=ref([]),form=ref({}),visible=ref(false);async function load(){rows.value=(await ecRecords()).data??[]}function open(row){form.value=row?{...row}:{ecType:0};visible.value=true}async function save(){await(form.value.id?updateEc(form.value):addEc(form.value));visible.value=false;load()}async function remove(id){await ElMessageBox.confirm('确定删除该记录吗？','提示',{type:'warning'});await deleteEc(id);load()}onMounted(load)</script>
+<template>
+    <div>
+        PerEc
+    </div>
+</template>
+
+<script>
+    export default {
+        name: "PerEc"
+    }
+</script>
+
+<style scoped>
+
+</style>
